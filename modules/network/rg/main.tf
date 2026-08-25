@@ -4,5 +4,5 @@ resource "azurerm_resource_group" "rg" {
 
   name     = each.value.name
   location = each.value.location
-  tags     = lookup(each.key, "tags", null)
+  tags     = lookup(each.value, "tags", null)
 }
