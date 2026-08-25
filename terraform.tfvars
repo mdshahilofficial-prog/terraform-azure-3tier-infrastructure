@@ -3,6 +3,10 @@ resource_groups = {
     name     = "rg-3tier-dev"
     location = "Central India"
   }
+  main1 = {
+    name     = "rg-3tier-dev1"
+    location = "Central India"
+  }
 }
 
 
