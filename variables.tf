@@ -1,12 +1,22 @@
 variable "resource_groups" {
   description = "Resource groups to create."
-
+type = map(object({
+    name     = string
+    location = string
+    tags     = optional(map(string))
+  }))
 }
 
 
 variable "virtual_networks" {
   description = "Virtual networks to create."
-
+type = map(object({
+    name                = string
+    resource_group_name = string
+    location            = string
+    address_space       = list(string)
+    tags                = optional(map(string))
+  }))
 }
 
 
