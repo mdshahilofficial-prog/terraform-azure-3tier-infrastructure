@@ -1,16 +1,19 @@
-name: Terraform Azure Infrastructure
+Infrastructure
 
 on:
   push:
     branches:
       - main
       - feature
+
   pull_request:
     branches:
       - main
 
+# Required for GitHub OIDC
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   terraform:
@@ -18,61 +21,72 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Azure OIDC authentication
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_USE_OIDC: true
 
-      TF_VAR_sql_admin_password: ${{ secrets.SQL_ADMIN_PASSWORD }}
-      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
 
     steps:
 
-      # -------------------------------
+      # --------------------------------
       # Checkout Repository
-      # -------------------------------
+      # --------------------------------
       - name: Checkout Repository
         uses: actions/checkout@v4
 
 
-      # -------------------------------
+      # --------------------------------
       # Setup Terraform
-      # -------------------------------
+      # --------------------------------
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
 
-      # -------------------------------
+      # --------------------------------
+      # Azure Login using OIDC
+      # --------------------------------
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+
+      # --------------------------------
       # Terraform Format Check
-      # -------------------------------
+      # --------------------------------
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
 
 
-      # -------------------------------
+      # --------------------------------
       # Terraform Init
-      # -------------------------------
+      # --------------------------------
       - name: Terraform Init
         run: terraform init
 
 
-      # -------------------------------
+      # --------------------------------
       # Terraform Validate
-      # -------------------------------
+      # --------------------------------
       - name: Terraform Validate
         run: terraform validate
 
 
-      # -------------------------------
+      # --------------------------------
       # Terraform Plan
-      # -------------------------------
+      # --------------------------------
       - name: Terraform Plan
         run: terraform plan -out=tfplan
 
 
-      # -------------------------------
+      # --------------------------------
       # Terraform Apply
-      # -------------------------------
+      # Only main branch
+      # --------------------------------
       - name: Terraform Apply
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve tfplan

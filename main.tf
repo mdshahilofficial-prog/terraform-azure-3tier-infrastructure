@@ -84,19 +84,24 @@ module "nic" {
     module.subnet
   ]
 }
+module "keyvault" {
+  source = "./modules/network/key_vault"
 
-
+  key_vaults                 = var.key_vaults
+  key_vault_secrets          = var.key_vault_secrets
+  key_vault_role_assignments = var.key_vault_role_assignments
+}
 module "vm" {
   source = "./modules/compute/vm"
 
-  linux_vms   = local.linux_vms
-  windows_vms = local.windows_vms
+  linux_vms   = var.linux_vms
+  windows_vms = var.windows_vms
 
+  key_vault_secret_values = module.keyvault.key_vault_secret_values
   depends_on = [
-    module.nic
+    module.nic, module.keyvault
   ]
 }
-
 
 module "sql_server" {
   source = "./modules/database/sql_server"

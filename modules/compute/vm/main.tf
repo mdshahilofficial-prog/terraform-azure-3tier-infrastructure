@@ -13,7 +13,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   computer_name = each.value.computer_name
 
-  admin_password = each.value.admin_password
+  admin_password = data.azurerm_key_vault_secret.linux_vm_password[each.key].value
 
   disable_password_authentication = each.value.ssh_public_key != null
 
@@ -47,7 +47,8 @@ resource "azurerm_windows_virtual_machine" "vm" {
   location            = each.value.location
   size                = each.value.size
   admin_username      = each.value.admin_username
-  admin_password      = each.value.admin_password
+
+  admin_password = data.azurerm_key_vault_secret.windows_vm_password[each.key].value
 
   network_interface_ids = [
     each.value.nic_id
